@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <title>Populate Dropdown using Flask</title>
+</head>
+<body>
+    <select id="stock">
+        <option value="">Select Stock</option>
+    </select>
+
+    <select id="timeframe">
+        <option value="">Select timeframe</option>
+        <option value="1min">1 min</option>
+        <option value="5min">5 min</option>
+        <option value="30min">30 min</option>
+        <option value="60min">1 hour</option>
+        <option value="240min">4 hours</option>
+        <option value="1day">1 day</option>
+        <option value="1week">1 week</option>
+    </select>
+    <div id="result"></div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <script>
+        // Get a reference to the select element
+        const stock = document.getElementById("stock");
+
+        stock.addEventListener("click", ()=>{
+            $.ajax({
+        type: "POST",
+        url: "/get_stock_list",
+        dataType: 'json',
+        data :
+        {
+            'stock':$("#stock").val() 
+        },
+        success: function(result) {
+        },  
+        error: function(result) {
+            alert('error');
+        }
+    });
+        });
+        $.ajax({
+        type: "POST",
+        url: "/get_stock_list",
+        dataType: 'json',
+
+        success: function(result) {
+            populateDropdown(result);
+        },  
+        error: function(result) {
+            alert('error');
+        }
+    });
+
+        // Function to populate the dropdown with data
+        function populateDropdown(data) {
+            const dropdown = document.getElementById("stock");
+            dropdown.innerHTML = '<option value="">Select an option</option>';
+            // Loop through the data and create options
+            for (const item of data) {
+                const option = document.createElement("option");
+                option.value = item;
+                option.textContent = item;
+                dropdown.appendChild(option);
+            }
+        }
+
+    </script>
+</body>
+</html>

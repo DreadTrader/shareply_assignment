@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <title>Populate Dropdown using Flask</title>
+</head>
+<body>
+    <br>
+    <select id="stock">
+        <option value="">Select Stock</option>
+    </select>
+
+    <select id="timeframe">
+        <option value="">Select timeframe</option>
+        <option value="1min">1 min</option>
+        <option value="5min">5 min</option>
+        <option value="30min">30 min</option>
+        <option value="60min">1 hour</option>
+        <option value="240min">4 hours</option>
+        <option value="1day">1 day</option>
+        <option value="1week">1 week</option>
+    </select>
+    <label for="appt">From Time:</label>
+    <input type="date" id="from_time" name="appt">
+    <label for="appt">To Time:</label>
+    <input type="date" id="to_time" name="appt">
+
+    <button type="button" id="getconfig" class="btn btn-success">Get Data</button>
+    <div id="ohlc-chart"></div>
+    <div id="volume"></div>
+    <h1>Indicators</h1>
+    <div id="dictionary-div">
+        <label for="ADX_14">ADX_14:</label>
+        <input id="ADX_14"><br>
+        
+        <label for="AO_5_34">AO_5_34:</label>
+        <input id="AO_5_34"><br>
+        
+        <label for="AROOND_14">AROOND_14:</label>
+        <input id="AROOND_14"><br>
+        
+        <label for="AROONOSC_14">AROONOSC_14:</label>
+        <input id="AROONOSC_14"><br>
+        
+        <label for="AROONU_14">AROONU_14:</label>
+        <input id="AROONU_14"><br>
+        
+        <label for="ATRr_14">ATRr_14:</label>
+        <input id="ATRr_14"><br>
+        
+        <label for="CHOP_14_1_100">CHOP_14_1_100:</label>
+        <input id="CHOP_14_1_100"><br>
+        
+        <label for="DMN_14">DMN_14:</label>
+        <input id="DMN_14"><br>
+        
+        <label for="DMP_14">DMP_14:</label>
+        <input id="DMP_14"><br>
+        
+        <label for="EMA_10">EMA_10:</label>
+        <input id="EMA_10"><br>
+        
+        <label for="HMA_10">HMA_10:</label>
+        <input id="HMA_10"><br>
+        
+        <label for="MACD_12_26_9">MACD_12_26_9:</label>
+        <input id="MACD_12_26_9"><br>
+        
+        <label for="MACDh_12_26_9">MACDh_12_26_9:</label>
+        <input id="MACDh_12_26_9"><br>
+        
+        <label for="MACDs_12_26_9">MACDs_12_26_9:</label>
+        <input id="MACDs_12_26_9"><br>
+        
+        <label for="MOM_10">MOM_10:</label>
+        <input id="MOM_10"><br>
+        
+        <label for="RSI_14">RSI_14:</label>
+        <input id="RSI_14"><br>
+        
+        <label for="SMA_10">SMA_10:</label>
+        <input id="SMA_10"><br>
+        
+        <label for="UO_7_14_28">UO_7_14_28:</label>
+        <input id="UO_7_14_28"><br>
+        
+        <label for="WILLR_14">WILLR_14:</label>
+        <input id="WILLR_14"><br>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <script>
+        
+        const submit = document.getElementById("getconfig");
+        submit.addEventListener("click", () => {
+            get_charts();
+        });
+
+        async function fetchOHLCData() {
+            var response = await fetch('/get_stock_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    stock: $("#stock").val(),
+                    time_frame: $("#timeframe").val(),
+                    to_time: $("#to_time").val(),
+                    from_time: $("#from_time").val()
+                })
+            });
+            const data = await response.json();
+            console.log(data);
+            return data;
+        }
+
+        async function get_charts() {
+            createOHLCChart();
+        }
+
+        async function createOHLCChart() {
+            const ohlcData = await fetchOHLCData();
+            ohlcData1 = ohlcData.candles;
+            const trace = {
+                x: ohlcData1.map(item => item.date),
+                open: ohlcData1.map(item => item.open),
+                high: ohlcData1.map(item => item.high),
+                low: ohlcData1.map(item => item.low),
+                close: ohlcData1.map(item => item.close),
+                type: 'candlestick',
+                name: 'OHLC Chart'
+            };
+
+            const layout = {
+                title: 'OHLC Chart',
+                xaxis: {
+                    type: 'category',
+                    title: 'Date'
+                },
+                yaxis: {
+                    title: 'Price'
+                }
+            };
+
+            const data = [trace];
+
+            const trace2 = {
+                x: ohlcData1.map(item => item.date),
+                y: ohlcData1.map(item => item.volume),
+                type: 'bars',
+            }
+            const data2 = [trace2]
+            Plotly.newPlot('ohlc-chart', data, layout);
+            Plotly.newPlot('volume', data2);
+            populateinfo(ohlcData.processed);
+        }
+
+        async function populateinfo(dictionary) {
+            $('#ADX_14').val(dictionary.ADX_14);
+            $('#AO_5_34').val(dictionary.AO_5_34);
+            $('#AROOND_14').val(dictionary.AROOND_14);
+            $('#AROONOSC_14').val(dictionary.AROONOSC_14);
+            $('#AROONU_14').val(dictionary.AROONU_14);
+            $('#ATRr_14').val(dictionary.ATRr_14);
+            $('#CHOP_14_1_100').val(dictionary.CHOP_14_1_100);
+            $('#DMN_14').val(dictionary.DMN_14);
+            $('#DMP_14').val(dictionary.DMP_14);
+            $('#EMA_10').val(dictionary.EMA_10);
+            $('#HMA_10').val(dictionary.HMA_10);
+            $('#MACD_12_26_9').val(dictionary.MACD_12_26_9);
+            $('#MACDh_12_26_9').val(dictionary.MACDh_12_26_9);
+            $('#MACDs_12_26_9').val(dictionary.MACDs_12_26_9);
+            $('#MOM_10').val(dictionary.MOM_10);
+            $('#RSI_14').val(dictionary.RSI_14);
+            $('#SMA_10').val(dictionary.SMA_10);
+            $('#UO_7_14_28').val(dictionary.UO_7_14_28);
+            $('#WILLR_14').val(dictionary.WILLR_14);
+        }
+
+        const stock = document.getElementById("stock");
+
+        $.ajax({
+            type: "GET",
+            url: "/get_stock_list",
+            dataType: 'json',
+            success: function (result) {
+                populateDropdown(result);
+            },
+            error: function (result) {
+                alert('error');
+            }
+        });
+
+        function populateDropdown(data) {
+            const stock = document.getElementById("stock");
+            stock.innerHTML = '<option value="">Select an option</option>';
+
+            for (const item of data) {
+                const option = document.createElement("option");
+                option.value = item;
+                option.textContent = item;
+                stock.appendChild(option);
+            }
+        }
+
+        function getCurrentDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        }
+
+        function getpreDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth()).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        }
+
+        // Set default values for dropdowns and date inputs
+        $('#stock').val("ACC");
+        $('#timeframe').val("1day");
+        $('#to_time').val(getCurrentDateTime());
+        $('#from_time').val(getpreDateTime());
+        
+    </script>
+</body>
+</html>

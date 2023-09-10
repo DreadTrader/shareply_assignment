@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Trading Dashboards</title>
+</head>
+<body>
+	<h1>Trading Dashboards</h1>
+	<form id="login-form" method="post" action="/login">
+		<label>Username:</label><br>
+		<input type="text" name="username" id="username" required><br>
+		<label>Password:</label><br>
+		<input type="password" name="password" required><br>
+		<input type="submit" value="Login" id="password" onclick=>
+	</form>
+
+	<script>
+
+        function eventfunction()
+    {
+    $.ajax({
+        type: "POST",
+        url: "/login",
+        dataType: 'json',
+        data: {
+            'username': $("#username").val() ,
+            'password': $("#password").val() 
+        },
+        success: function(result) {
+            $("#tconfig").val(result.strat_id);
+        },
+        error: function(result) {
+            alert('error');
+        }
+    });
+}
+	</script>
+</body>
+</html>
